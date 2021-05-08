@@ -703,7 +703,7 @@ for p in transchoice:
 
 # # H8. Timeline of start and end of the anomalies (in red)
 #         plt.figure(15)
-#         plt.plot([mytime3, mytime4], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
+#         plt.plot([start, end], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
 #         # savefig('T'+ str(p) + '_15' + '.png', bbox_inches='tight')
 
 
