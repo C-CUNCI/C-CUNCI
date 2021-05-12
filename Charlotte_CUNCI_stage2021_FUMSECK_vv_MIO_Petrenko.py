@@ -2,7 +2,7 @@
 """
 Created on Mon May  3 15:39:21 2021
 
-@author: chacu
+@author: Charlotte Cunci
 """
 
 from datetime import datetime, timedelta  # Dates in YYYY-MM-DD HH:MM:SS
@@ -19,7 +19,7 @@ from geopy import distance  # Calculate distances
 
 
 
-transchoice = [1] #, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]  # for each transect
+transchoice = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]  # for each transect
 for p in transchoice:
     # Open the MATLAB file Tp.mat with p = 1 to 13
     x = loadmat('T' + str(p) + '.mat')
@@ -29,14 +29,14 @@ for p in transchoice:
     u = x['u']
     v = x['v']
     w = x['w']
-    depth = x['depth'] + 11  # depth begin at 19m so 8+11 ...
+    depth = x['depth'] + 11  # depth begin at 19m and every 8 m : 19 - 8 = 11
     mytime = x['mytime']
 
 
 
 
 # # ==========================================================================
-# # A.    Transect length xL and depth yL
+# # A.    Transect length xL, depth yL and time
 # # ==========================================================================
 
     dist = [0]
@@ -63,6 +63,7 @@ for p in transchoice:
     xL = len(dist)  # dist = transect in km; xL is the length of dist
     yL = len(depth)
 
+
     # Transect start and end times
     def datenum_to_datetime(datenum):
         """
@@ -88,6 +89,12 @@ for p in transchoice:
     duration1 = mytime2 - mytime1
     # print ("Transect n°" + str(p), "last", duration1)
 
+    mytime0 = []
+    for i in mytime:
+        mytime0.append(datenum_to_datetime(i))
+
+    import matplotlib.dates as mdates
+    xfmt = mdates.DateFormatter('%H')
 
 
 # # ==========================================================================
@@ -105,15 +112,16 @@ for p in transchoice:
         w_average.append(sum(Σw) / len(Σw))
 
 
-#     # Plot of w_average as a function of distance
-#     fig1 = plt.figure(1, figsize=(10, 6))
-#     plt.plot(dist, w_average)
-#     plt.xlabel("Distance [km]", size=12)
-#     plt.ylabel("Average vertical velocity w_average [m.s-1]", size=12)
-#     plt.title("Variation of the average vertical velocity for "
-#                 "the transect n°" + str(p), size=14)
-#     # savefig('T'+ str(p) + '_1' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # # Plot of w_average as a function of distance
+    # fig1 = plt.figure(1, figsize=(12, 6))
+    # plt.plot(dist, w_average)
+    # plt.xlabel("Distance [km]", size=15)
+    # plt.ylabel("Vitesse verticale moyenne [m/s]", size=12)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    # plt.title("Variation of the average vertical velocity for "
+    #             "the transect n°" + str(p), size=14)
+    # # savefig('T'+ str(p) + '_1' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -135,21 +143,21 @@ for p in transchoice:
 
 
 # # ==========================================================================
-# # D.    MAP + velocity graphs as a function of depth and transect length
+# # D.    MAP + velocity graphs as a function of depth and time
 # # ==========================================================================
 
-#     fig2 = plt.figure(2, figsize=(10, 6))
+#     fig2 = plt.figure(2, figsize=(12, 6))
 #     gs = fig2.add_gridspec(2, 2)  # Place the subplots according to a 2x2 grid
-#     plt.suptitle("Transect map and velocity graphs for "
-#                   "the transect n°" + str(p), size=16)
+#     # plt.suptitle("Transect map and velocity graphs for "
+#                   #  "the transect n°" + str(p), size=16)
 
-# # ================
-# # D1.Transect map
-# # ================
+# # # ================
+# # # D1.Transect map
+# # # ================
 
 #     # 1st graph in position [0, 0], with a Mercator projection
 #     ax = fig2.add_subplot(gs[0, 0], projection=ccrs.Mercator())
-#     ax.set_title('Location of the transect n°' + str(p), size=14)
+#     ax.set_title('Localisation du transect n°' + str(p), size=14)
 #     plt.figtext(0.28, 0.52, 'Longitude', size=14)
 #     plt.figtext(0.12, 0.68, 'Latitude', rotation=90, size=14)
 
@@ -184,61 +192,69 @@ for p in transchoice:
 
 
 # # ==============================================================
-# # D2. Velocity graphs as a function of depth and transect length
+# # D2. Velocity graphs as a function of depth and time
 # # ==============================================================
 
-#     gs = fig2.add_gridspec(3, 2)  # 3x2 Grid
-#     fig2.subplots_adjust(hspace=0.5)  # Space between the graphs
-#     fig2.set_size_inches(15, 8)  # Graph size
 
+    
     # np.meshgrid takes 2 1D arrays and produces 2 2D matrices of pairs (x, y)
-    xL2, depth2 = np.meshgrid(dist, depth)
+    time, depth2 = np.meshgrid(mytime0, depth)
     w_currentT = np.transpose(w_current)
     uT = np.transpose(u)
     vT = np.transpose(v)
     wT = np.transpose(w)
 
 
-    # fig2.add_subplot(gs[0, 1])  # u fct depth and transect length
-    # plt.pcolormesh(xL2, depth2, uT, shading='auto')
-    # plt.gca().invert_yaxis()
-    # plt.clim(-0.5, 0.5)
-    # cbar = plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-    # cbar.set_label(label="Velocity [m.s-1]", size=14)
-    # plt.title("Horizontal velocity u", size=14)
-    # plt.ylabel("Depth [m]", size=14)
-    
-    # fig2.add_subplot(gs[1, 1])  # v fct depth and transect length
-    # plt.pcolormesh(xL2, depth2, vT, shading='auto')
-    # plt.gca().invert_yaxis()
-    # plt.clim(-0.5, 0.5)
-    # cbar = plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-    # cbar.set_label(label="Velocity [m.s-1]", size=14)
-    # plt.title("Horizontal velocity v", size=14)
-    # plt.ylabel("Depth [m]", size=14)
+    # gs = fig2.add_gridspec(3, 2)  # 3x2 Grid
+    # fig2.subplots_adjust(hspace=0.5)  # Space between the graphs
+    # fig2.set_size_inches(15, 8)  # Graph size
 
-    # fig2.add_subplot(gs[2, 1])  # w fct depth and transect length
-    # plt.pcolormesh(xL2, depth2, wT, shading='auto')
+    # fig2.add_subplot(gs[0, 1])  # u fct depth and time
+    # plt.pcolormesh(time, depth2, uT, shading='auto')
     # plt.gca().invert_yaxis()
     # plt.clim(-0.5, 0.5)
-    # cbar = plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-    # cbar.set_label(label="Velocity [m.s-1]", size=14)
-    # plt.title("Vertical velocity w", size=14)
-    # plt.xlabel("Transect length [km]", size=14)
-    # plt.ylabel("Depth [m]", size=14)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=14)
+    # plt.title("Vitesse horizontale corrigée u(z,t)", size=14)
+    # plt.ylabel("Profondeur [m]", size=14)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
     
-    # fig2.add_subplot(gs[2, 0])  # w_current fct depth and transect length
-    # plt.pcolormesh(xL2, depth2, w_currentT, shading='auto')
+    # fig2.add_subplot(gs[1, 1])  # v fct depth and time
+    # plt.pcolormesh(time, depth2, vT, shading='auto')
+    # plt.gca().invert_yaxis()
+    # plt.clim(-0.5, 0.5)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=14)
+    # plt.title("Vitesse horizontale corrigée v(z,t)", size=14)
+    # plt.ylabel("Profondeur [m]", size=14)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+
+    # fig2.add_subplot(gs[2, 1])  # w fct depth and time
+    # plt.pcolormesh(time, depth2, wT, shading='auto')
+    # plt.gca().invert_yaxis()
+    # plt.clim(-0.5, 0.5)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=14)
+    # plt.title("Vitesse verticale mesurée $w_{mes}$(z,t)", size=16)
+    # plt.xlabel("Temps [h]", size=14)
+    # plt.ylabel("Profondeur [m]", size=14)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    
+    # fig2.add_subplot(gs[2, 0])  # w_current fct depth and time
+    # plt.pcolormesh(time, depth2, w_currentT, shading='auto')
     # plt.gca().invert_yaxis()
     # plt.clim(-0.15, 0.10)  # Why different from others?
-    # cbar = plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-    # cbar.set_label(label="Velocity [m.s-1]", size=14)
-    # plt.title("Current vertical velocity w_current", size=14)
-    # plt.xlabel("Transect length [km]", size=14)
-    # plt.ylabel("Depth [m]", size=14)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=14)
+    # plt.title("Vitesse verticale corrigée w(z,t)", size=14)
+    # plt.xlabel("Temps [h]", size=14)
+    # plt.ylabel("Profondeur [m]", size=14)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
     # # plt.gca().xaxis.set_visible(False)  # Hides the x-axis
     # # savefig('T'+ str(p) + '_2' + '.png', bbox_inches='tight')
     # # plt.close()
+
+
 
 
 # # ==========================================================================
@@ -259,13 +275,13 @@ for p in transchoice:
         for j in range(yL):
             w_average2.append(wmat_current[j, i])
 
-#     fig3 = plt.figure(3, figsize=(10, 6))
-#     plt.hist(w_average2, bins=200, range=(-0.2, 0.2), color='C0')
-#     plt.xlabel("Vertical velocity w [m.s-1]", size=12)
-#     plt.title("Histogram of corrected vertical velocities of "
-#               "the transect n°" + str(p), size=14)
-#     # savefig('T'+ str(p) + '_3' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # fig3 = plt.figure(3, figsize=(10, 6))
+    # plt.hist(w_average2, bins=200, range=(-0.2, 0.2), color='C0')
+    # plt.xlabel("Vitesse verticale w [m/s]", size=15)
+    # # plt.title("Histogram of corrected vertical velocities of "
+    # #           "the transect n°" + str(p), size=14)
+    # # savefig('T'+ str(p) + '_3' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -273,16 +289,16 @@ for p in transchoice:
 # # E2. Histogram for a single point in the anomaly
 # # ===============================================
 
-#     for i in range(xL):  #120
-#         w1_current = w[120] - w_average[120]
+    # for i in range(xL):  #120
+    #     w1_current = w[120] - w_average[120]
 
-#     fig4 = plt.figure(4, figsize=(10, 6))
-#     plt.hist(w1_current, bins=60, range=(-0.2, 0.2))
-#     plt.xlabel('Vertical velocity w [m.s-1]', size=12)
-#     plt.title('Histogram of corrected vertical velocities for a single point'
-#               ' of the transect n°' + str(p), size=14)
-#     # savefig('T'+ str(p) + '_4' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # fig4 = plt.figure(4, figsize=(10, 6))
+    # plt.hist(w1_current, bins=60, range=(-0.2, 0.2))
+    # plt.xlabel("Vitesse verticale w [m/s]", size=15)
+    # # plt.title('Histogram of corrected vertical velocities for a single point'
+    # #           ' of the transect n°' + str(p), size=14)
+    # # savefig('T'+ str(p) + '_4' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -298,20 +314,19 @@ for p in transchoice:
 
     depth1 = depth[1:]
 
-#     # Plot of w average corrected function of depth
-#     fig5 = plt.figure(5, figsize=(6, 10))
-#     a = plt.subplot(111)
-#     plt.plot(w_average3, depth1)
-#     plt.gca().invert_yaxis()
-# 
-#     plt.ylabel("Depth [m]", size=12)
-#     plt.xlabel("Vertical velocity w [m.s-1]", size=12)
-#     plt.title("Corrected current average vertical velocity as a function "
-#               "of depth for the transect n°" + str(p), size=14)
-#     a.xaxis.tick_top()
-#     a.xaxis.set_label_position('top')
-#     # savefig('T'+ str(p) + '_5' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # # Plot of w average corrected function of depth
+    # fig5 = plt.figure(5, figsize=(6, 12))
+    # plt.plot(w_average3, depth1)
+    # plt.gca().invert_yaxis()
+
+    # plt.ylabel("Profondeur [m]", size=15)
+    # plt.xlabel("Vitesse verticale w [m/s]", size=15)
+    # plt.title("Corrected current average vertical velocity as a function "
+    #           "of depth for the transect n°" + str(p), size=14)
+    # plt.gca().xaxis.tick_top()
+    # plt.gca().xaxis.set_label_position('top')
+    # # savefig('T'+ str(p) + '_5' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -332,38 +347,40 @@ for p in transchoice:
 
         w_average_mov.append(mov_avg)
 
-    xLmov = dist[0:xL-move]
-
-#     fig6 = plt.figure(6, figsize=(10, 6))
+    timemov = mytime0[0:-move]
+    timem, depthm = np.meshgrid(timemov, depth)
+    
+#     fig6 = plt.figure(6, figsize=(12, 6))
 #     gs2 = fig6.add_gridspec(2, 1)
 #     fig6.subplots_adjust(hspace=0.5)
 #     fig6.set_size_inches(8, 6)
-#     plt.suptitle("Moving average of the current vertical velocity "
-#                   "for the transect n°" + str(p), size=16)
+# #     plt.suptitle("Moving average of the current vertical velocity "
+# #                   "for the transect n°" + str(p), size=16)
 
-    xLm, depthm = np.meshgrid(xLmov, depth)
 
 #     fig6.add_subplot(gs2[0, 0])
-    # plt.pcolormesh(xL2, depth2, w_currentT, shading='auto')
-    # plt.gca().invert_yaxis()
-    # plt.clim(-0.15, 0.10)
-    # cbar = plt.colorbar(aspect=10, label="Vitesse [m.s-1]")
-    # cbar.set_label(label="Vitesse [m.s-1]", size=15)
-    # plt.title("Vitesse verticale du courant pour le transect n°" + str(p), size=15)
-    # plt.xlabel("Longueur du transect [km]", size=15)
-    # plt.ylabel("Profondeur [m]", size=15)
-    # savefig('T'+ str(p) + '_6' + '.png', bbox_inches='tight')
-    # plt.close()
-
-#     fig6.add_subplot(gs2[1, 0])
-#     plt.pcolormesh(xLm, depthm, w_average_mov, shading='nearest')
+#     plt.pcolormesh(time, depth2, w_currentT, shading='auto')
 #     plt.gca().invert_yaxis()
 #     plt.clim(-0.15, 0.10)
-#     plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-#     plt.title("Moving average of the current vertical velocity w_current",
-#               size=14)
-#     plt.xlabel("Transect length [km]", size=12)
-#     plt.ylabel("Depth [m]", size=12)
+#     cbar = plt.colorbar(aspect=10)
+#     cbar.set_label(label="Vitesse [m/s]", size=15)
+# #     plt.title("Vitesse verticale du courant pour le transect n°" + str(p), size=15)
+#     plt.xlabel("Temps [h]", size=15)
+#     plt.ylabel("Profondeur [m]", size=15)
+#     plt.gca().xaxis.set_major_formatter(xfmt)
+
+
+#     fig6.add_subplot(gs2[1, 0])
+#     plt.pcolormesh(timem, depthm, w_average_mov, shading='nearest')
+#     plt.gca().invert_yaxis()
+#     plt.clim(-0.15, 0.10)
+#     cbar = plt.colorbar(aspect=10)
+#     cbar.set_label(label="Vitesse [m/s]", size=15)
+# #     plt.title("Moving average of the current vertical velocity w_current",
+# #               size=15)
+#     plt.xlabel("Temps [h]", size=15)
+#     plt.ylabel("Profondeur [m]", size=15)
+#     plt.gca().xaxis.set_major_formatter(xfmt)
 #     # savefig('T'+ str(p) + '_6' + '.png', bbox_inches='tight')
 #     # plt.close()
 
@@ -384,14 +401,14 @@ for p in transchoice:
     THRESHOLD = -0.05  # Threshold at -0.05 at first sight
     wmat1_current = wmat_current[wmat_current < THRESHOLD]
 
-#     # Histogram of the values < -0.05
-#     fig7 = plt.figure(7, figsize=(10, 6))
-#     plt.hist(wmat1_current, bins=60, range=(-0.2, 0.2))
-#     plt.xlabel('Vertical velocity w [m.s-1]')
-#     plt.title('Histogram of corrected vertical velocities for the values <'
-#               ' -0.05 m/s for the transect n°' + str(p), size=14)
-#     # savefig('T'+ str(p) + '_7' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # # Histogram of the values < -0.05
+    # fig7 = plt.figure(7, figsize=(10, 6))
+    # plt.hist(wmat1_current, bins=60, range=(-0.2, 0.2))
+    # plt.xlabel('Vitesse verticale w [m/s]', size=15)
+    # plt.title('Histograme des vitesses verticales corrigées <'
+    #           ' -5 cm/s pour le transect n°' + str(p), size=15)
+    # # savefig('T'+ str(p) + '_7' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -406,16 +423,18 @@ for p in transchoice:
 
     wmat_ano = np.where(wmat_current < THRESHOLD, wmat_current, np.nan)
 
-#     fig8 = plt.figure(8, figsize=(10, 6))
-#     plt.pcolormesh(xL2, depth2, wmat_ano, shading='auto')
-#     plt.gca().invert_yaxis()
-#     plt.clim(-0.15, 0.10)
-#     plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-#     plt.title("Current vertical velocity < -0.05 m/s", size=14)
-#     plt.xlabel("Transect length [km]", size=12)
-#     plt.ylabel("Depth [m]", size=12)
-#     # savefig('T'+ str(p) + '_8' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # fig8 = plt.figure(8, figsize=(12, 6))
+    # plt.pcolormesh(time, depth2, wmat_ano, shading='auto')
+    # plt.gca().invert_yaxis()
+    # plt.clim(-0.15, 0.10)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=15)
+    # plt.title("Vitesses verticales < -5 cm/s", size=15)
+    # plt.xlabel("Temps [h]", size=15)
+    # plt.ylabel("Profondeur [m]", size=15)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    # # savefig('T'+ str(p) + '_8' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -451,16 +470,18 @@ for p in transchoice:
     CMIN = -0.15
     wmat2_ano = np.where(wmat_current < THRESHOLD, wmat_current, np.nan)
 
-#     fig9 = plt.figure(9, figsize=(10, 6))
-#     plt.pcolormesh(xL2, depth2, wmat2_ano, shading='auto')
-#     plt.gca().invert_yaxis()
-#     plt.clim(CMIN, THRESHOLD)
-#     plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-#     plt.title("Current vertical velocity < -0.03 m/s", size=14)
-#     plt.xlabel("Transect length [km]", size=12)
-#     plt.ylabel("Depth [m]", size=12)
-#     # savefig('T'+ str(p) + '_9' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # fig9 = plt.figure(9, figsize=(12, 6))
+    # plt.pcolormesh(time, depth2, wmat2_ano, shading='auto')
+    # plt.gca().invert_yaxis()
+    # plt.clim(CMIN, THRESHOLD)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=15)
+    # plt.title("Vitesses verticales < -3 cm/s", size=15)
+    # plt.xlabel("Temps [h]", size=15)
+    # plt.ylabel("Profondeur [m]", size=15)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    # # savefig('T'+ str(p) + '_9' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -473,17 +494,18 @@ for p in transchoice:
     wmat_average_mov_ano = np.where(wmat_average_mov < THRESHOLD,
                                     wmat_average_mov, np.nan)
 
-#     fig10 = plt.figure(10, figsize=(10, 6))
-#     plt.pcolormesh(xLm, depthm, wmat_average_mov_ano, shading='auto')
-#     plt.gca().invert_yaxis()
-#     plt.clim(CMIN, THRESHOLD)
-#     plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-#     plt.title("Moving average of the current vertical velocities < -0.03m/s",
-#               size=14)
-#     plt.xlabel("Transect length [km]", size=12)
-#     plt.ylabel("Depth [m]", size=12)
-#     # savefig('T'+ str(p) + '_10' + '.png', bbox_inches='tight')
-#     # plt.close()
+    # fig10 = plt.figure(10, figsize=(12, 6))
+    # plt.pcolormesh(timem, depthm, wmat_average_mov_ano, shading='auto')
+    # plt.gca().invert_yaxis()
+    # plt.clim(CMIN, THRESHOLD)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=15)
+    # plt.title("Moyenne mobile des vitesses verticales < -3 cm/s", size=15)
+    # plt.xlabel("Temps  [h]", size=15)
+    # plt.ylabel("Profondeur [m]", size=15)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    # # savefig('T'+ str(p) + '_10' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 
@@ -528,21 +550,21 @@ for p in transchoice:
     # When grid = 1, we put the values of wmat2_ano, otherwise we put nan
     wmat3_ano = np.where(grid == 1, wmat2_ano, np.nan)
 
-#   # Plot wmat3_ano i.e. wmat2_ano (wmat_current < -0.03) cleaned by the grid:
-    # fig11 = plt.figure(11, figsize=(10, 6))
-    # ax = fig11.add_subplot(111)
-    # plt.pcolormesh(xL2, depth2, wmat3_ano, shading='auto')
+  # Plot wmat3_ano i.e. wmat2_ano (wmat_current < -0.03) cleaned by the grid:
+    # fig11 = plt.figure(11, figsize=(12, 6))
+    # plt.pcolormesh(time, depth2, wmat3_ano, shading='auto')
     # plt.gca().invert_yaxis()
     
     # plt.clim(CMIN, THRESHOLD)
-    # cbar=plt.colorbar(aspect=10, label="Velocity [m.s-1]")
-    # cbar.set_label(label="Velocity [m.s-1]", size=15)
+    # cbar = plt.colorbar(aspect=10)
+    # cbar.set_label(label="Vitesse [m/s]", size=15)
 
-    # plt.xlabel("Transect length [km]", size=15)
-    # ax.xaxis.set_tick_params(labelsize=15)
-    # plt.ylabel("Depth [m]", size=15)
-    # ax.yaxis.set_tick_params(labelsize=15)
-    # plt.title("Anomaly de vitesses < -3cm/s pour le transect n°" +str(p), size=14)
+    # plt.xlabel("Temps [h]", size=15)
+    # plt.gca().xaxis.set_tick_params(labelsize=15)
+    # plt.gca().xaxis.set_major_formatter(xfmt)
+    # plt.ylabel("Profondeur [m]", size=15)
+    # plt.gca().yaxis.set_tick_params(labelsize=15)
+    # plt.title("Anomalie de vitesses < -3 cm/s pour le transect n°" +str(p), size=14)
     # # savefig('T'+ str(p) + '_11' + '.png', bbox_inches='tight')
     # # plt.close()
 
@@ -555,47 +577,45 @@ for p in transchoice:
     wmat3_ano_fla = wmat3_ano.flatten()  # flatten(?) the matrix
     wmat_current_fla = wmat_current.flatten()
 
-#     fig12 = plt.figure(12, figsize=(10, 6))
-#     ax = fig12.add_subplot(111)
+    # fig12 = plt.figure(12, figsize=(10, 6))
 
-#     # Histogram of the vertical velocities on the whole transect (blue)
-#     plt.hist(wmat_current_fla, bins=100, range=(-0.3, 0.3), color='C0')  # color='blue'
-#     plt.xlabel('Vertical velocity w [m.s-1]', size=20)
-#     ax.xaxis.set_tick_params(labelsize=15)
-#     ax.yaxis.set_tick_params(labelsize=15)
-#     plt.title(" Histogram of the vertical velocities on the whole transect"
-#               " for the transect n°" + str(p), size=14)
+    # # Histogram of the vertical velocities on the whole transect (blue)
+    # plt.hist(wmat_current_fla, bins=100, range=(-0.3, 0.3), color='C0')  # color='blue'
+    # plt.xlabel('Vitesse verticale w [m/s]', size=20)
+    # plt.gca().xaxis.set_tick_params(labelsize=15)
+    # plt.gca().yaxis.set_tick_params(labelsize=15)
+    # plt.title(" Histogram of the vertical velocities on the whole transect"
+    #           " for the transect n°" + str(p), size=14)
 
-#     MEAN_HIST12=np.nanmean(wmat_current_fla)
-#     STD_HIST12=np.nanstd(wmat_current_fla)
-#     print('Without anomaly: mean=',MEAN_HIST12,"std=", STD_HIST12)
-
-
-#     # Histogram of vertical velocity anomaly (red)
-#     plt.hist(wmat3_ano_fla, bins=100, range=(-0.3, 0.3), color='red')
-#     plt.xlabel('Vertical velocity w [m.s-1]', size=20)
-#     ax.xaxis.set_tick_params(labelsize=15)
-#     ax.yaxis.set_tick_params(labelsize=15)
-#     plt.title("Histogram of vertical velocities (blue) and vertical velocities"
-#               " of anomalies (red) for the transect n°" + str(p), size=14)
-#     # savefig('T'+ str(p) + '_12' + '.png', bbox_inches='tight')
-#     # plt.close()
+    MEAN_HIST12=np.nanmean(wmat_current_fla)
+    STD_HIST12=np.nanstd(wmat_current_fla)
+    # print('Without anomaly: mean=',MEAN_HIST12,"std=", STD_HIST12)
 
 
-#     # Histogram of velocities with the anomaly removed
-#     wmat5_ano = np.where(grid == 1, np.nan, wmat_current)
-#     wmat5_ano_fla = wmat5_ano.flatten()
+    # # Histogram of vertical velocity anomaly (red)
+    # plt.hist(wmat3_ano_fla, bins=100, range=(-0.3, 0.3), color='red')
+    # plt.xlabel('Vitesse verticale w [m/s]', size=20)
+    # plt.gca().xaxis.set_tick_params(labelsize=15)
+    # plt.gca().yaxis.set_tick_params(labelsize=15)
+    # plt.title("Histogram of vertical velocities (blue) and vertical velocities"
+    #           " of anomalies (red) for the transect n°" + str(p), size=14)
+    # # savefig('T'+ str(p) + '_12' + '.png', bbox_inches='tight')
+    # # plt.close()
 
-#     fig13 = plt.figure(13, figsize=(10, 6))
-#     ax = fig13.add_subplot(111)
-#     plt.hist(wmat5_ano_fla, bins=100, range=(-0.3, 0.3), color='C0')
-#     plt.xlabel('Vertical velocity w [m.s-1]', size=20)
-#     ax.xaxis.set_tick_params(labelsize=15)
-#     ax.yaxis.set_tick_params(labelsize=15)
-#     plt.title("Histogram of velocities without the anomaly"
-#               " for the transect n°" + str(p), size=14)
-#     # savefig('T'+ str(p) + '_13' + '.png', bbox_inches='tight')
-#     # plt.close()
+
+    # Histogram of velocities with the anomaly removed
+    wmat5_ano = np.where(grid == 1, np.nan, wmat_current)
+    wmat5_ano_fla = wmat5_ano.flatten()
+
+    # fig13 = plt.figure(13, figsize=(10, 6))
+    # plt.hist(wmat5_ano_fla, bins=100, range=(-0.3, 0.3), color='C0')
+    # plt.xlabel('Vitesse verticale w [m/s]', size=20)
+    # plt.gca().xaxis.set_tick_params(labelsize=15)
+    # plt.gca().yaxis.set_tick_params(labelsize=15)
+    # plt.title("Histogram of velocities without the anomaly"
+    #           " for the transect n°" + str(p), size=14)
+    # # savefig('T'+ str(p) + '_13' + '.png', bbox_inches='tight')
+    # # plt.close()
 
 
 # Anomaly vertical velocities:
@@ -660,11 +680,16 @@ for p in transchoice:
 # # H8. Timeline of transects (in black)
 # # ====================================
 
-    # fig15 = plt.figure(15, figsize=(12, 2))
-    # plt.title("Timeline of the transect and the anomaly (in red)", size=14)
-    # plt.plot([mytime1, mytime2], [0, 0], marker='|',  color='dodgerblue',
-    #           markersize=20, linewidth=3)
-    # plt.grid()
+    frise = mdates.DateFormatter('%d/%m %H:%M')
+
+    fig15 = plt.figure(15, figsize=(12, 2))
+    plt.title("Timeline of the transect and the anomaly (in red)", size=14)
+    plt.plot([mytime1, mytime2], [0, 0], marker='|',  color='dodgerblue',
+              markersize=10, linewidth=3)
+    plt.gca().xaxis.set_tick_params(labelsize=15)
+    plt.gca().xaxis.set_major_formatter(frise)
+    # plt.gca().xaxis.set_major_formatter('minuit')
+    plt.grid()
 
 
 
@@ -701,10 +726,10 @@ for p in transchoice:
 
 
 
-# # H8. Timeline of start and end of the anomalies (in red)
-#         plt.figure(15)
-#         plt.plot([start, end], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
-#         # savefig('T'+ str(p) + '_15' + '.png', bbox_inches='tight')
+# H8. Timeline of start and end of the anomalies (in red)
+        plt.figure(15)
+        plt.plot([start, end], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
+        # savefig('T'+ str(p) + '_15' + '.png', bbox_inches='tight')
 
 
 # # H7. Start of the anomaly in black on the map
