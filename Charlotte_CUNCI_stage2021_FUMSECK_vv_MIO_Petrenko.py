@@ -2,7 +2,7 @@
 """
 Created on Mon May  3 15:39:21 2021
 
-@author: Charlotte Cunci
+@author: chacu
 """
 
 from datetime import datetime, timedelta  # Dates in YYYY-MM-DD HH:MM:SS
@@ -19,7 +19,7 @@ from geopy import distance  # Calculate distances
 
 
 
-transchoice = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]  # for each transect
+transchoice = [1]  #, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]  # for each transect
 for p in transchoice:
     # Open the MATLAB file Tp.mat with p = 1 to 13
     x = loadmat('T' + str(p) + '.mat')
@@ -580,7 +580,7 @@ for p in transchoice:
     # fig12 = plt.figure(12, figsize=(10, 6))
 
     # # Histogram of the vertical velocities on the whole transect (blue)
-    # plt.hist(wmat_current_fla, bins=100, range=(-0.3, 0.3), color='C0')  # color='blue'
+    # plt.hist(wmat_current_fla, bins=100, range=(-0.25, 0.25), color='C0')  # color='blue'
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -593,7 +593,7 @@ for p in transchoice:
 
 
     # # Histogram of vertical velocity anomaly (red)
-    # plt.hist(wmat3_ano_fla, bins=100, range=(-0.3, 0.3), color='red')
+    # plt.hist(wmat3_ano_fla, bins=100, range=(-0.25, 0.25), color='red')
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -608,7 +608,7 @@ for p in transchoice:
     wmat5_ano_fla = wmat5_ano.flatten()
 
     # fig13 = plt.figure(13, figsize=(10, 6))
-    # plt.hist(wmat5_ano_fla, bins=100, range=(-0.3, 0.3), color='C0')
+    # plt.hist(wmat5_ano_fla, bins=100, range=(-0.25, 0.25), color='C0')
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -629,50 +629,50 @@ for p in transchoice:
 # # H7. Map of all transects with anomalies in red
 # # ==============================================
 
-    # fig14 = plt.figure(14, figsize=(13, 7))
-    # ax = plt.axes(projection=ccrs.Mercator())
-    # ax.set_extent([5.5, 10, 42.5, 44.5])  # 5, 10, 42.5, 44.5 normal, square 7.5, 9.5, 43, 44.5
-    # ax.coastlines(resolution='auto', color='k')
+    fig14 = plt.figure(14, figsize=(13, 7))
+    ax = plt.axes(projection=ccrs.Mercator())
+    ax.set_extent([5.5, 10, 42.5, 44.5])  # 5, 10, 42.5, 44.5 normal, square 7.5, 9.5, 43, 44.5
+    ax.coastlines(resolution='auto', color='k')
 
-    # B = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, 
-    #                   ylocs=[42.66666667, 43, 43.33333333, 43.66666667, 44,
-    #                         44.33333333], dms=True, linewidth=0.5,
-    #                   color='grey', alpha=0.5, linestyle='--')
-    # # dms minutes, seconds: 20' and 40', (xlocs: the values we want to put)
-    # # xlocs=[6, 7, 8, 9, 10],
+    B = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, 
+                      ylocs=[42.66666667, 43, 43.33333333, 43.66666667, 44,
+                            44.33333333], dms=True, linewidth=0.5,
+                      color='grey', alpha=1, linestyle='--')
+    # dms minutes, seconds: 20' and 40', (xlocs: the values we want to put)
+    # xlocs=[6, 7, 8, 9, 10],
 
-    # B.top_labels = False
-    # B.right_labels = False
-    # B.xlabel_style = {'size': 15}  # 'color': 'k'}
-    # B.ylabel_style = {'size': 15}
+    B.top_labels = False
+    B.right_labels = False
+    B.xlabel_style = {'size': 15}  # 'color': 'k'}
+    B.ylabel_style = {'size': 15}
 
-    # ax.add_feature(cfeature.NaturalEarthFeature('physical', 'land', '10m',
-    #                                             facecolor='lightgrey'))
-    # # ax.add_feature(cfeature.OCEAN, facecolor='skyblue')
+    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'land', '10m',
+                                                facecolor='lightgrey'))
+    ax.add_feature(cfeature.OCEAN, facecolor='skyblue')
 
-    # # Trace the transect in blue or dodgerblue
-    # plt.scatter(lon, lat, color="dodgerblue", s=2, alpha=0.5,
-    #             transform=ccrs.PlateCarree())     
+    # Trace the transect in blue or dodgerblue
+    plt.scatter(lon, lat, color="blue", s=2, alpha=0.5,
+                transform=ccrs.PlateCarree())     
 
-    # # Trace the anomaly in red
+    # Trace the anomaly in red
     # plt.scatter(lon[w_anomalie[1]], lat[w_anomalie[1]], color="red", s=2,
     #             alpha=0.5, transform=ccrs.PlateCarree())
 
-    # # plt.title("Map of the transect with the anomaly in red", size=14)
-    # plt.figtext(0.475, 0.04, 'Longitude', size=20)
-    # plt.figtext(0.1, 0.45, 'Latitude', rotation=90, size=20)
+    # plt.title("Map of the transect with the anomaly in red", size=14)
+    plt.figtext(0.475, 0.04, 'Longitude', size=20)
+    plt.figtext(0.1, 0.45, 'Latitude', rotation=90, size=20)
 
-    # # Black point for the start of the transect
-    # plt.scatter(lon[0], lat[0], color='k',  s=20, alpha=1,
-    #             transform=ccrs.PlateCarree())
+    # Black point for the start of the transect
+    plt.scatter(lon[0], lat[0], color='k',  s=20, alpha=1,
+                transform=ccrs.PlateCarree())
 
-    # # Black arrow for the start of the transect
-    # # plt.quiver(lon[0], lat[0], lon[20]-lon[0], lat[20]-lat[0], color='k',
-    # #             width=0.003, scale=10, transform=ccrs.PlateCarree())
-    # # scale: a smaller scale parameter makes the arrow longer (scale=8 then 6)
+    # Black arrow for the start of the transect
+    # plt.quiver(lon[0], lat[0], lon[20]-lon[0], lat[20]-lat[0], color='k',
+    #             width=0.003, scale=10, transform=ccrs.PlateCarree())
+    # scale: a smaller scale parameter makes the arrow longer (scale=8 then 6)
 
-    # plt.text(lon[0], lat[0]-0.08, '' + str(p), size=12, transform=ccrs.PlateCarree())
-    #                         # -0.06 square  # -0.08 normal
+    plt.text(lon[0], lat[0]-0.08, '' + str(p), size=12, transform=ccrs.PlateCarree())
+                            # -0.06 square  # -0.08 normal
 
 
 
@@ -682,14 +682,14 @@ for p in transchoice:
 
     frise = mdates.DateFormatter('%d/%m %H:%M')
 
-    fig15 = plt.figure(15, figsize=(12, 2))
-    plt.title("Timeline of the transect and the anomaly (in red)", size=14)
-    plt.plot([mytime1, mytime2], [0, 0], marker='|',  color='dodgerblue',
-              markersize=10, linewidth=3)
-    plt.gca().xaxis.set_tick_params(labelsize=15)
-    plt.gca().xaxis.set_major_formatter(frise)
-    # plt.gca().xaxis.set_major_formatter('minuit')
-    plt.grid()
+    # fig15 = plt.figure(15, figsize=(12, 2))
+    # plt.title("Timeline of the transect and the anomaly (in red)", size=14)
+    # plt.plot([mytime1, mytime2], [0, 0], marker='|',  color='dodgerblue',
+    #           markersize=10, linewidth=3)
+    # plt.gca().xaxis.set_tick_params(labelsize=15)
+    # plt.gca().xaxis.set_major_formatter(frise)
+    # # plt.gca().xaxis.set_major_formatter('minuit')
+    # plt.grid()
 
 
 
@@ -727,9 +727,9 @@ for p in transchoice:
 
 
 # H8. Timeline of start and end of the anomalies (in red)
-        plt.figure(15)
-        plt.plot([start, end], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
-        # savefig('T'+ str(p) + '_15' + '.png', bbox_inches='tight')
+        # plt.figure(15)
+        # plt.plot([start, end], [0, 0], color='red', linewidth=3)  # marker='|' markersize=20
+        # # savefig('T'+ str(p) + '_15' + '.png', bbox_inches='tight')
 
 
 # # H7. Start of the anomaly in black on the map
