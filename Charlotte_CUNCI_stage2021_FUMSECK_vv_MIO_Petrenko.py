@@ -2,35 +2,41 @@
 """
 Created on Mon May  3 15:39:21 2021
 
-@author: chacu
+@author: Charlotte CUNCI
 """
 
+# IMPORT
 from datetime import datetime, timedelta  # Dates in YYYY-MM-DD HH:MM:SS
-import matplotlib.pyplot as plt  # plotting package (create plots)
-from matplotlib.pyplot import savefig
-import numpy as np  # calculations on vectors and matrices, via ndarray
-import pandas as pd  # Data analysis in table form
-from scipy.io import loadmat  # Load MATLAB file
-import warnings  # delete warning: "mean of empty slice" because of nan
+import matplotlib.pyplot as plt           # plotting package (create plots)
+from matplotlib.pyplot import savefig     # to save figures
+import numpy as np                        # calcul on vectors, matrices, via ndarray
+import pandas as pd                       # Data analysis in table form
+from scipy.io import loadmat              # Load MATLAB file
+import warnings                           # delete warning: "mean of empty slice" because of nan
 
-import cartopy.crs as ccrs  # Trace the transects on a map
-import cartopy.feature as cfeature
-from geopy import distance  # Calculate distances
+import cartopy.crs as ccrs                # Trace the transects on a map
+import cartopy.feature as cfeature        # options on the map
+from geopy import distance                # Calculate distances
+
+import matplotlib.dates as mdates
+xfmt = mdates.DateFormatter('%H')
+frise = mdates.DateFormatter('%d/%m %H:%M')
+
 
 
 
 transchoice = [1]  #, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]  # for each transect
 for p in transchoice:
     # Open the MATLAB file Tp.mat with p = 1 to 13
-    x = loadmat('T' + str(p) + '.mat')
+    file = loadmat('T' + str(p) + '.mat')
 
-    lon = x['lon']
-    lat = x['lat']
-    u = x['u']
-    v = x['v']
-    w = x['w']
-    depth = x['depth'] + 11  # depth begin at 19m and every 8 m : 19 - 8 = 11
-    mytime = x['mytime']
+    lon = file['lon']
+    lat = file['lat']
+    u = file['u']
+    v = file['v']
+    w = file['w']
+    depth = file['depth'] + 11  # depth starts at 19m not 8m as in the file (8+11=19)
+    mytime = file['mytime']
 
 
 
@@ -40,31 +46,28 @@ for p in transchoice:
 # # ==========================================================================
 
     dist = [0]
-    n = 0
     for i in range(len(lat)-1):
 
-        lat1 = lat[n]
-        lon1 = lon[n]
-        point1 = [lat1, lon1]
+        lat1 = lat[i]
+        lon1 = lon[i]
+        x1 = [lat1, lon1]
 
-        lat2 = lat[n+1]
-        lon2 = lon[n+1]
-        point2 = [lat2, lon2]
+        lat2 = lat[i+1]
+        lon2 = lon[i+1]
+        x2 = [lat2, lon2]
 
         # Geodetic distance between 2 points x1 and x2 in km
-        distance_geopy = distance.distance(point1, point2).km
-
-        n = n + 1  # For all the points
+        distance_geopy = distance.distance(x1, x2).km
 
         dist.append(distance_geopy)  # Add distances to the list dist
         dist[i+1] = dist[i] + dist[i+1]  # Sum of all distances
 
-    # xL: Number of elements in the transect (494 for transect 1 for example)
-    xL = len(dist)  # dist = transect in km; xL is the length of dist
+
+    xL = len(dist)
     yL = len(depth)
 
 
-    # Transect start and end times
+# TIME
     def datenum_to_datetime(datenum):
         """
         Convert Matlab datenum into Python datetime YYYY-MM-DD HH:MM:SS
@@ -83,18 +86,18 @@ for p in transchoice:
             + timedelta(seconds=int(seconds)) \
             - timedelta(days=366)
 
-    mytime1 = datenum_to_datetime(mytime[0])
-    mytime2 = datenum_to_datetime(mytime[xL-1])  # acquisition time: 2min
-    # print ("Transect n°" + str(p), "start:", mytime1, "end:", mytime2)
-    duration1 = mytime2 - mytime1
-    # print ("Transect n°" + str(p), "last", duration1)
 
     mytime0 = []
     for i in mytime:
         mytime0.append(datenum_to_datetime(i))
 
-    import matplotlib.dates as mdates
-    xfmt = mdates.DateFormatter('%H')
+    mytime1 = mytime0[0]
+    mytime2 = mytime0[xL-1]
+    duration1 = mytime2 - mytime1
+    # print ("Transect n°" + str(p), "start:", mytime1, "end:", mytime2, 
+    #        "and last", duration1)
+
+
 
 
 # # ==========================================================================
@@ -114,12 +117,12 @@ for p in transchoice:
 
     # # Plot of w_average as a function of distance
     # fig1 = plt.figure(1, figsize=(12, 6))
-    # plt.plot(dist, w_average)
-    # plt.xlabel("Distance [km]", size=15)
-    # plt.ylabel("Vitesse verticale moyenne [m/s]", size=12)
+    # plt.plot(mytime0, w_average)
+    # plt.xlabel("Temps [h]", size=15)
+    # plt.ylabel("Vitesse verticale moyenne [m/s]", size=15)
     # plt.gca().xaxis.set_major_formatter(xfmt)
-    # plt.title("Variation of the average vertical velocity for "
-    #             "the transect n°" + str(p), size=14)
+    # plt.title("Variation de la vitesse verticale moyenne pour "
+    #             "le transect n°" + str(p), size=15)
     # # savefig('T'+ str(p) + '_1' + '.png', bbox_inches='tight')
     # # plt.close()
 
@@ -243,7 +246,7 @@ for p in transchoice:
     # fig2.add_subplot(gs[2, 0])  # w_current fct depth and time
     # plt.pcolormesh(time, depth2, w_currentT, shading='auto')
     # plt.gca().invert_yaxis()
-    # plt.clim(-0.15, 0.10)  # Why different from others?
+    # plt.clim(-0.15, 0.10)
     # cbar = plt.colorbar(aspect=10)
     # cbar.set_label(label="Vitesse [m/s]", size=14)
     # plt.title("Vitesse verticale corrigée w(z,t)", size=14)
@@ -289,8 +292,8 @@ for p in transchoice:
 # # E2. Histogram for a single point in the anomaly
 # # ===============================================
 
-    # for i in range(xL):  #120
-    #     w1_current = w[120] - w_average[120]
+    for i in range(xL):  #120
+        w1_current = w[120] - w_average[120]
 
     # fig4 = plt.figure(4, figsize=(10, 6))
     # plt.hist(w1_current, bins=60, range=(-0.2, 0.2))
@@ -441,27 +444,6 @@ for p in transchoice:
 # # ========================================================================
 # # H3. Test to clean the plot
 
-# # We try to clean the plot by removing the isolated "points" at the bottom
-# # and on the left. For that, we put nan at i when i+1, i+2, ..., i+5 = nan
-# # ========================================================================
-
-#     wmat2_current = wmat_current
-#     for i in range (0, xL-1):
-#         for j in range (0, yL-7):
-#             if (pd.isnull(wmat_current[j+1, i])
-#                 & (pd.isnull(wmat_current[j+2, i]))
-#                 & (pd.isnull(wmat_current[j+3, i]))
-#                 & (pd.isnull(wmat_current[j+4, i]))
-#                 & (pd.isnull(wmat_current[j+5, i]))):
-# 
-#                 wmat2_current[j:, i] = np.nan
-# # It does not "clean" enough.
-
-
-
-# # ========================================================================
-# # H3.2 Second test to clean the plot
-
 # # We change the threshold to -0.03 m/s: With a colorbar up to -0.03 we can
 # # better see the variations in the anomaly: blue "spot" in the center.
 # # ========================================================================
@@ -550,7 +532,9 @@ for p in transchoice:
     # When grid = 1, we put the values of wmat2_ano, otherwise we put nan
     wmat3_ano = np.where(grid == 1, wmat2_ano, np.nan)
 
-  # Plot wmat3_ano i.e. wmat2_ano (wmat_current < -0.03) cleaned by the grid:
+
+
+    # # Plot wmat3_ano i.e. wmat2_ano (wmat_current < -0.03) cleaned by the grid:
     # fig11 = plt.figure(11, figsize=(12, 6))
     # plt.pcolormesh(time, depth2, wmat3_ano, shading='auto')
     # plt.gca().invert_yaxis()
@@ -574,13 +558,13 @@ for p in transchoice:
 # # H6. Histograms
 # # ==============
 
-    wmat3_ano_fla = wmat3_ano.flatten()  # flatten(?) the matrix
+    wmat3_ano_fla = wmat3_ano.flatten()  # flatten the matrix
     wmat_current_fla = wmat_current.flatten()
 
     # fig12 = plt.figure(12, figsize=(10, 6))
 
     # # Histogram of the vertical velocities on the whole transect (blue)
-    # plt.hist(wmat_current_fla, bins=100, range=(-0.25, 0.25), color='C0')  # color='blue'
+    # plt.hist(wmat_current_fla, bins=200, range=(-0.2, 0.2), color='C0')  # color='blue'
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -593,7 +577,7 @@ for p in transchoice:
 
 
     # # Histogram of vertical velocity anomaly (red)
-    # plt.hist(wmat3_ano_fla, bins=100, range=(-0.25, 0.25), color='red')
+    # plt.hist(wmat3_ano_fla, bins=200, range=(-0.2, 0.2), color='red')
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -608,7 +592,7 @@ for p in transchoice:
     wmat5_ano_fla = wmat5_ano.flatten()
 
     # fig13 = plt.figure(13, figsize=(10, 6))
-    # plt.hist(wmat5_ano_fla, bins=100, range=(-0.25, 0.25), color='C0')
+    # plt.hist(wmat5_ano_fla, bins=200, range=(-0.2, 0.2), color='C0')
     # plt.xlabel('Vitesse verticale w [m/s]', size=20)
     # plt.gca().xaxis.set_tick_params(labelsize=15)
     # plt.gca().yaxis.set_tick_params(labelsize=15)
@@ -618,69 +602,71 @@ for p in transchoice:
     # # plt.close()
 
 
+
+
+
 # Anomaly vertical velocities:
 # < 0 or 2 or whatever because nan are not values so we are sure it will take
 # only the values
     w_anomalie = np.where(wmat3_ano < 2)
 
 
-
 # # ==============================================
 # # H7. Map of all transects with anomalies in red
 # # ==============================================
-
-    fig14 = plt.figure(14, figsize=(13, 7))
-    ax = plt.axes(projection=ccrs.Mercator())
-    ax.set_extent([5.5, 10, 42.5, 44.5])  # 5, 10, 42.5, 44.5 normal, square 7.5, 9.5, 43, 44.5
-    ax.coastlines(resolution='auto', color='k')
-
-    B = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, 
-                      ylocs=[42.66666667, 43, 43.33333333, 43.66666667, 44,
-                            44.33333333], dms=True, linewidth=0.5,
-                      color='grey', alpha=1, linestyle='--')
-    # dms minutes, seconds: 20' and 40', (xlocs: the values we want to put)
-    # xlocs=[6, 7, 8, 9, 10],
-
-    B.top_labels = False
-    B.right_labels = False
-    B.xlabel_style = {'size': 15}  # 'color': 'k'}
-    B.ylabel_style = {'size': 15}
-
-    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'land', '10m',
-                                                facecolor='lightgrey'))
-    ax.add_feature(cfeature.OCEAN, facecolor='skyblue')
-
-    # Trace the transect in blue or dodgerblue
-    plt.scatter(lon, lat, color="blue", s=2, alpha=0.5,
-                transform=ccrs.PlateCarree())     
-
-    # Trace the anomaly in red
-    # plt.scatter(lon[w_anomalie[1]], lat[w_anomalie[1]], color="red", s=2,
-    #             alpha=0.5, transform=ccrs.PlateCarree())
-
-    # plt.title("Map of the transect with the anomaly in red", size=14)
-    plt.figtext(0.475, 0.04, 'Longitude', size=20)
-    plt.figtext(0.1, 0.45, 'Latitude', rotation=90, size=20)
-
-    # Black point for the start of the transect
-    plt.scatter(lon[0], lat[0], color='k',  s=20, alpha=1,
-                transform=ccrs.PlateCarree())
-
-    # Black arrow for the start of the transect
-    # plt.quiver(lon[0], lat[0], lon[20]-lon[0], lat[20]-lat[0], color='k',
-    #             width=0.003, scale=10, transform=ccrs.PlateCarree())
-    # scale: a smaller scale parameter makes the arrow longer (scale=8 then 6)
-
-    plt.text(lon[0], lat[0]-0.08, '' + str(p), size=12, transform=ccrs.PlateCarree())
-                            # -0.06 square  # -0.08 normal
-
-
+# =============================================================================
+# 
+#     fig14 = plt.figure(14, figsize=(13, 7))
+#     ax = plt.axes(projection=ccrs.Mercator())
+#     ax.set_extent([5.5, 10, 42.5, 44.5])  # 5, 10, 42.5, 44.5 normal, square 7.5, 9.5, 43, 44.5
+#     ax.coastlines(resolution='auto', color='k')
+# 
+#     B = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, 
+#                       ylocs=[42.66666667, 43, 43.33333333, 43.66666667, 44,
+#                             44.33333333], dms=True, linewidth=0.5,
+#                       color='grey', alpha=1, linestyle='--')
+#     # dms minutes, seconds: 20' and 40', (xlocs: the values we want to put)
+#     # xlocs=[6, 7, 8, 9, 10],
+# 
+#     B.top_labels = False
+#     B.right_labels = False
+#     B.xlabel_style = {'size': 15}  # 'color': 'k'}
+#     B.ylabel_style = {'size': 15}
+# 
+#     ax.add_feature(cfeature.NaturalEarthFeature('physical', 'land', '10m',
+#                                                 facecolor='lightgrey'))
+#     ax.add_feature(cfeature.OCEAN, facecolor='skyblue')
+# 
+#     # Trace the transect in blue or dodgerblue
+#     plt.scatter(lon, lat, color="blue", s=2, alpha=0.5,
+#                 transform=ccrs.PlateCarree())     
+# 
+#     # Trace the anomaly in red
+#     plt.scatter(lon[w_anomalie[1]], lat[w_anomalie[1]], color="red", s=2,
+#                 alpha=0.5, transform=ccrs.PlateCarree())
+# 
+#     # plt.title("Map of the transect with the anomaly in red", size=14)
+#     plt.figtext(0.475, 0.04, 'Longitude', size=20)
+#     plt.figtext(0.1, 0.45, 'Latitude', rotation=90, size=20)
+# 
+#     # Black point for the start of the transect
+#     plt.scatter(lon[0], lat[0], color='k',  s=20, alpha=1,
+#                 transform=ccrs.PlateCarree())
+# 
+#     # Black arrow for the start of the transect
+#     # plt.quiver(lon[0], lat[0], lon[20]-lon[0], lat[20]-lat[0], color='k',
+#     #             width=0.003, scale=10, transform=ccrs.PlateCarree())
+#     # scale: a smaller scale parameter makes the arrow longer (scale=8 then 6)
+# 
+#     plt.text(lon[0], lat[0]-0.08, '' + str(p), size=12, transform=ccrs.PlateCarree())
+#                             # -0.06 square  # -0.08 normal
+# 
+# 
+# =============================================================================
 
 # # ====================================
 # # H8. Timeline of transects (in black)
 # # ====================================
-
-    frise = mdates.DateFormatter('%d/%m %H:%M')
 
     # fig15 = plt.figure(15, figsize=(12, 2))
     # plt.title("Timeline of the transect and the anomaly (in red)", size=14)
@@ -737,8 +723,8 @@ for p in transchoice:
         # plt.scatter(lon[MINIMUM], lat[MINIMUM],s=100, marker="*", color='maroon',
         #             transform=ccrs.PlateCarree())
         # # savefig('carte des anomalies, mer en bleue' + '.png', bbox_inches='tight')
-        # print('Anomaly beginning : lat, lon:' + str(p), lat[MINIMUM], lon[MINIMUM])
-        # print('End:' + str(p), lat[MAXIMUM], lon[MAXIMUM])
+        # # print('Anomaly beginning : lat, lon:' + str(p), lat[MINIMUM], lon[MINIMUM])
+        # # print('End:' + str(p), lat[MAXIMUM], lon[MAXIMUM])
 
 
 # # H9. Ship velocity
